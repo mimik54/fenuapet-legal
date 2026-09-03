@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://lmblgotwdbpkobstftxn.supabase.co; connect-src https://lmblgotwdbpkobstftxn.supabase.co wss://lmblgotwdbpkobstftxn.supabase.co; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+<title>Fenua Pet</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./admin.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     FORMULAIRE TÉMOIGNAGE (affiché si ?token=...)
+═══════════════════════════════════════════════ -->
+<div id="testimonial-screen">
+  <div class="t-card">
+
+    <div class="t-logo">
+      <span class="t-logo-icon">🐾</span>
+      <div class="t-logo-text">Fenua<span>Pet</span></div>
+    </div>
+
+    <!-- Formulaire -->
+    <div id="t-form">
+      <div class="t-title">Laisser un témoignage</div>
+      <div class="t-subtitle" id="t-subtitle">Partage ton expérience avec ce pet sitter !</div>
+
+      <div class="t-row">
+        <div>
+          <label class="t-label">Prénom *</label>
+          <input class="t-input" id="t-first" type="text" placeholder="Marie" />
+        </div>
+        <div>
+          <label class="t-label">Nom *</label>
+          <input class="t-input" id="t-last" type="text" placeholder="Dupont" />
+        </div>
+      </div>
+
+      <label class="t-label">Note *</label>
+      <div class="stars-row" id="stars-row">
+        <button class="star-btn" data-command="set-rating" data-v="1">⭐</button>
+        <button class="star-btn" data-command="set-rating" data-v="2">⭐</button>
+        <button class="star-btn" data-command="set-rating" data-v="3">⭐</button>
+        <button class="star-btn" data-command="set-rating" data-v="4">⭐</button>
+        <button class="star-btn" data-command="set-rating" data-v="5">⭐</button>
+      </div>
+
+      <label class="t-label">Animal *</label>
+      <input class="t-input" id="t-species" type="text" placeholder="Chien, Chat, Lapin..." />
+
+      <div class="t-row">
+        <div>
+          <label class="t-label">Âge (optionnel)</label>
+          <input class="t-input" id="t-age" type="number" placeholder="3" min="0" />
+        </div>
+        <div>
+          <label class="t-label">Poids kg (optionnel)</label>
+          <input class="t-input" id="t-weight" type="number" placeholder="5" min="0" />
+        </div>
+      </div>
+
+      <label class="t-label">Ton témoignage *</label>
+      <textarea class="t-input" id="t-comment" placeholder="Raconte ton expérience..."></textarea>
+
+      <div class="t-error" id="t-error"></div>
+      <button class="t-submit" id="t-btn" data-command="submit-testimonial">Envoyer mon avis ✅</button>
+    </div>
+
+    <!-- Succès -->
+    <div id="t-success" style="display:none" class="t-center">
+      <div class="t-big-emoji">🎉</div>
+      <div class="t-success-title">Merci !</div>
+      <div class="t-success-text">Ton avis a bien été enregistré.<br>Le pet sitter va adorer !</div>
+    </div>
+
+    <!-- Lien invalide -->
+    <div id="t-invalid" style="display:none" class="t-center">
+      <div class="t-big-emoji">😕</div>
+      <div class="t-success-title">Lien invalide</div>
+      <div class="t-success-text">Ce lien a déjà été utilisé ou n'existe pas.</div>
+    </div>
+
+    <!-- Chargement -->
+    <div id="t-loading" style="display:none" class="t-center">
+      <div style="font-size:36px;margin-bottom:12px">⏳</div>
+      <div style="color:#6b9e8a;font-size:14px">Vérification du lien...</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     LOGIN ADMIN
+═══════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <span class="paw">🐾</span>
+      <div class="brand">Fenua<span>Pet</span></div>
+    </div>
+    <div id="credentials-panel">
+      <h2>Accès administration sécurisé</h2>
+      <p class="login-help">Connexion réservée au compte administrateur confirmé.</p>
+      <div class="field">
+        <label>Adresse email</label>
+        <input type="email" id="admin-email-input" value="fenuapet@gmail.com" autocomplete="username" />
+      </div>
+      <div class="field">
+        <label>Mot de passe</label>
+        <input type="password" id="pw-input" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+      <button class="btn-primary" data-command="login">Se connecter</button>
+    </div>
+    <div id="mfa-panel" class="mfa-panel">
+      <h2 id="mfa-title">Double authentification</h2>
+      <p class="login-help" id="mfa-help">Entre le code à six chiffres de ton application d’authentification.</p>
+      <img id="mfa-qr" class="mfa-qr" alt="QR code de configuration MFA" />
+      <div id="mfa-secret" class="mfa-secret"></div>
+      <div class="field">
+        <label>Code de sécurité</label>
+        <input type="text" id="mfa-code" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" />
+      </div>
+      <button class="btn-primary" data-command="verify-mfa">Vérifier</button>
+      <button class="btn-secondary" data-command="logout">Annuler la connexion</button>
+    </div>
+    <div class="login-error" id="login-error">Connexion impossible</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     ADMIN APP
+═══════════════════════════════════════════════ -->
+<div id="app" style="display:none;">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <span class="paw">🐾</span>
+      <div class="brand">Fenua<span>Pet</span></div>
+    </div>
+    <div class="sidebar-label">Navigation</div>
+    <div class="nav-item active" data-command="show-page" data-page="dashboard">
+      <span class="icon">📊</span> Pilotage
+    </div>
+    <div class="nav-item" data-command="show-page" data-page="verifications">
+      <span class="icon">🪪</span> Vérifications
+      <span class="badge green" id="badge-verif">0</span>
+    </div>
+    <div class="nav-item" data-command="show-page" data-page="reports">
+      <span class="icon">🚨</span> Signalements
+      <span class="badge" id="badge-reports">0</span>
+    </div>
+    <div class="nav-item" data-command="show-page" data-page="beta">
+      <span class="icon">🧪</span> Retours bêta
+      <span class="badge green" id="badge-beta">0</span>
+    </div>
+    <div class="sidebar-footer">
+      <div class="admin-tag">Connecté en tant que<br><span id="admin-login">Admin</span></div>
+      <button class="logout-btn" data-command="logout">← Déconnexion</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Pilotage modération</div>
+          <div class="page-sub">Vue rapide des vérifications, signalements et preuves gelées</div>
+        </div>
+        <button class="refresh-btn" data-command="refresh-all">
+          <span id="dash-spin">↻</span> Tout actualiser
+        </button>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-label">Identités en attente</div><div class="stat-value orange" id="d-verif-pending">—</div></div>
+        <div class="stat-card"><div class="stat-label">Signalements ouverts</div><div class="stat-value red" id="d-report-open">—</div></div>
+        <div class="stat-card"><div class="stat-label">Preuves gelées</div><div class="stat-value orange" id="d-frozen">—</div></div>
+        <div class="stat-card"><div class="stat-label">Retours bêta ouverts</div><div class="stat-value blue" id="d-beta-open">—</div></div>
+        <div class="stat-card"><div class="stat-label">Comptes suspendus</div><div class="stat-value red" id="d-suspended">—</div></div>
+      </div>
+      <div class="ops-grid">
+        <div class="ops-card warn">
+          <div class="ops-title">À traiter maintenant</div>
+          <div class="ops-list" id="dash-action-list">
+            <div class="empty">Chargement...</div>
+          </div>
+        </div>
+        <div class="ops-card">
+          <div class="ops-title">État opérationnel</div>
+          <div class="detail-line"><strong>Identités :</strong> CI recto, CI verso et selfie visibles via liens signés temporaires.</div>
+          <div class="detail-line"><strong>Litiges :</strong> les preuves sont affichées et la conservation est indiquée clairement.</div>
+          <div class="detail-line"><strong>Actions :</strong> avertir, suspendre, résoudre, ignorer, rouvrir.</div>
+          <div class="quick-row">
+            <button class="quick-btn" data-command="jump-page" data-page="verifications">Vérifications</button>
+            <button class="quick-btn" data-command="jump-page" data-page="reports">Signalements</button>
+            <button class="quick-btn" data-command="jump-page" data-page="beta">Retours bêta</button>
+            <a class="quick-btn" href="https://supabase.com/dashboard/project/lmblgotwdbpkobstftxn/functions" target="_blank" rel="noopener" style="text-decoration:none;">Fonctions Supabase</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VERIFICATIONS -->
+    <div class="page" id="page-verifications">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Vérifications d'identité</div>
+          <div class="page-sub">Approuvez ou refusez les demandes de vérification manuellement</div>
+        </div>
+        <button class="refresh-btn" data-command="load-verifications">
+          <span id="verif-spin">↻</span> Actualiser
+        </button>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-label">En attente</div><div class="stat-value orange" id="s-pending">—</div></div>
+        <div class="stat-card"><div class="stat-label">Approuvées</div><div class="stat-value green" id="s-approved">—</div></div>
+        <div class="stat-card"><div class="stat-label">Refusées</div><div class="stat-value red" id="s-rejected">—</div></div>
+        <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value blue" id="s-total">—</div></div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-top">
+          <div class="table-title">Demandes</div>
+          <div class="filter-row">
+            <input class="search-input" placeholder="Rechercher..." id="verif-search" />
+            <button class="filter-btn active" data-command="filter-verifications" data-filter="all">Tous</button>
+            <button class="filter-btn" data-command="filter-verifications" data-filter="pending">En attente</button>
+            <button class="filter-btn" data-command="filter-verifications" data-filter="approved">Approuvés</button>
+            <button class="filter-btn" data-command="filter-verifications" data-filter="rejected">Refusés</button>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Utilisateur</th><th>Statut</th><th>Soumis le</th><th>Actions</th></tr></thead>
+          <tbody id="verif-tbody"><tr><td colspan="4" class="loading">Chargement...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- REPORTS -->
+    <div class="page" id="page-reports">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Signalements</div>
+          <div class="page-sub">Traite les signalements entre utilisateurs</div>
+        </div>
+        <button class="refresh-btn" data-command="load-reports">
+          <span id="report-spin">↻</span> Actualiser
+        </button>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-label">Ouverts</div><div class="stat-value red" id="r-open">—</div></div>
+        <div class="stat-card"><div class="stat-label">Résolus</div><div class="stat-value green" id="r-resolved">—</div></div>
+        <div class="stat-card"><div class="stat-label">Ignorés</div><div class="stat-value" id="r-dismissed">—</div></div>
+        <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value blue" id="r-total">—</div></div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-top">
+          <div class="table-title">Signalements reçus</div>
+          <div class="filter-row">
+            <input class="search-input" placeholder="Rechercher..." id="report-search" />
+            <button class="filter-btn active" data-command="filter-reports" data-filter="all">Tous</button>
+            <button class="filter-btn" data-command="filter-reports" data-filter="open">Ouverts</button>
+            <button class="filter-btn" data-command="filter-reports" data-filter="warned">Avertis</button>
+            <button class="filter-btn" data-command="filter-reports" data-filter="suspended">Suspendus</button>
+            <button class="filter-btn" data-command="filter-reports" data-filter="resolved">Résolus</button>
+            <button class="filter-btn" data-command="filter-reports" data-filter="dismissed">Ignorés</button>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Signalé par</th><th>Utilisateur signalé</th><th>Raison</th><th>Statut</th><th>Conservation</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody id="report-tbody"><tr><td colspan="7" class="loading">Chargement...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- BETA FEEDBACK -->
+    <div class="page" id="page-beta">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Retours bêta</div>
+          <div class="page-sub">Suit les bugs, remarques UX et idées envoyés depuis l’app</div>
+        </div>
+        <button class="refresh-btn" data-command="load-beta">
+          <span id="beta-spin">↻</span> Actualiser
+        </button>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-label">Ouverts</div><div class="stat-value red" id="b-open">—</div></div>
+        <div class="stat-card"><div class="stat-label">En cours</div><div class="stat-value orange" id="b-progress">—</div></div>
+        <div class="stat-card"><div class="stat-label">Traités</div><div class="stat-value green" id="b-resolved">—</div></div>
+        <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value blue" id="b-total">—</div></div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-top">
+          <div class="table-title">Retours reçus</div>
+          <div class="filter-row">
+            <input class="search-input" placeholder="Rechercher..." id="beta-search" />
+            <button class="filter-btn active" data-command="filter-beta" data-filter="all">Tous</button>
+            <button class="filter-btn" data-command="filter-beta" data-filter="open">Ouverts</button>
+            <button class="filter-btn" data-command="filter-beta" data-filter="in_progress">En cours</button>
+            <button class="filter-btn" data-command="filter-beta" data-filter="resolved">Traités</button>
+            <button class="filter-btn" data-command="filter-beta" data-filter="dismissed">Ignorés</button>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Utilisateur</th><th>Catégorie</th><th>Message</th><th>Statut</th><th>Appareil</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody id="beta-tbody"><tr><td colspan="7" class="loading">Chargement...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-verif">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Vérification d'identité</div>
+      <button class="modal-close" data-command="close-modal" data-modal="modal-verif">✕</button>
+    </div>
+    <div class="modal-section"><div class="modal-label">Utilisateur</div><div class="modal-value" id="mv-user">—</div></div>
+    <div class="modal-section"><div class="modal-label">Email</div><div class="modal-value mono" id="mv-email">—</div></div>
+    <div class="modal-section"><div class="modal-label">Statut actuel</div><div id="mv-status">—</div></div>
+    <div class="modal-section"><div class="modal-label">Documents soumis</div><div class="modal-value" id="mv-doc">Aucun document disponible</div></div>
+    <div class="modal-section"><div class="modal-label">Note (optionnel)</div><textarea class="note-input" id="mv-note" placeholder="Raison du refus ou commentaire..."></textarea></div>
+    <div class="modal-actions" id="mv-actions"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-report">
+  <div class="modal report-modal">
+    <div class="modal-header">
+      <div class="modal-title">Détail du signalement</div>
+      <button class="modal-close" data-command="close-modal" data-modal="modal-report">✕</button>
+    </div>
+    <div class="modal-section"><div class="modal-label">Signalé par</div><div class="modal-value" id="mr-reporter">—</div></div>
+    <div class="modal-section"><div class="modal-label">Utilisateur signalé</div><div class="modal-value" id="mr-reported">—</div></div>
+    <div class="modal-section"><div class="modal-label">Raison</div><div class="modal-value" id="mr-reason">—</div></div>
+    <div class="modal-section"><div class="modal-label">Description</div><div class="modal-value" id="mr-desc" style="color:var(--text2);">—</div></div>
+    <div class="modal-section"><div class="modal-label">Date</div><div class="modal-value mono" id="mr-date">—</div></div>
+    <div class="modal-section"><div class="modal-label">Statut actuel</div><div id="mr-status">—</div></div>
+    <div class="modal-section"><div class="modal-label">Réservation liée</div><div class="modal-value mono" id="mr-booking">—</div></div>
+    <div class="modal-section"><div class="modal-label">Conservation des preuves</div><div id="mr-retention">—</div></div>
+    <div class="modal-section"><div class="modal-label">Fiche litige mission</div><div id="mr-mission-details">—</div></div>
+    <div class="modal-section"><div class="modal-label">Note admin (optionnel)</div><textarea class="note-input" id="mr-note" placeholder="Note de traitement..."></textarea></div>
+    <div class="modal-actions" id="mr-actions"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-beta">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Détail retour bêta</div>
+      <button class="modal-close" data-command="close-modal" data-modal="modal-beta">✕</button>
+    </div>
+    <div class="modal-section"><div class="modal-label">Utilisateur</div><div class="modal-value" id="mb-user">—</div></div>
+    <div class="modal-section"><div class="modal-label">Catégorie</div><div class="modal-value" id="mb-category">—</div></div>
+    <div class="modal-section"><div class="modal-label">Message</div><div class="modal-value" id="mb-message" style="color:var(--text2); white-space:pre-wrap;">—</div></div>
+    <div class="modal-section"><div class="modal-label">Appareil</div><div class="modal-value mono" id="mb-device">—</div></div>
+    <div class="modal-section"><div class="modal-label">Date</div><div class="modal-value mono" id="mb-date">—</div></div>
+    <div class="modal-section"><div class="modal-label">Statut actuel</div><div id="mb-status">—</div></div>
+    <div class="modal-section"><div class="modal-label">Note admin (optionnel)</div><textarea class="note-input" id="mb-note" placeholder="Décision, suivi ou rappel interne..."></textarea></div>
+    <div class="modal-actions" id="mb-actions"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="./vendor/supabase.js" defer></script>
+<script src="./admin.js" defer></script>
+</body>
+</html>

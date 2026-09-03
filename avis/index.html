@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#0d5c4e">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src https://lmblgotwdbpkobstftxn.supabase.co; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+  <title>Laisser un avis | FenuaPet</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #eef6f2;
+      color: #17322a;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .topbar { height: 6px; background: #0d5c4e; }
+    main { width: min(100% - 32px, 620px); margin: 36px auto; }
+    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+    .brand img { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; }
+    .brand-name { font-size: 24px; font-weight: 800; color: #0d5c4e; }
+    .brand-subtitle { margin-top: 2px; color: #61736d; font-size: 13px; }
+    .panel {
+      background: #fff;
+      border: 1px solid #d9e6e0;
+      border-radius: 8px;
+      padding: 28px;
+      box-shadow: 0 12px 34px rgba(18, 71, 57, 0.08);
+    }
+    h1 { margin: 0 0 8px; font-size: 27px; line-height: 1.2; letter-spacing: 0; }
+    .intro { margin: 0 0 26px; color: #61736d; line-height: 1.55; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    label { display: block; margin: 17px 0 7px; color: #324d44; font-size: 13px; font-weight: 700; }
+    .required::after { content: " *"; color: #b42318; }
+    input, textarea {
+      width: 100%;
+      border: 1px solid #b9ccc4;
+      border-radius: 6px;
+      padding: 12px 13px;
+      background: #fff;
+      color: #17322a;
+      font: inherit;
+      font-size: 16px;
+    }
+    input:focus, textarea:focus { outline: 3px solid #cde8dc; border-color: #0d5c4e; }
+    textarea { min-height: 132px; resize: vertical; line-height: 1.5; }
+    .hint { margin-top: 6px; color: #73857f; font-size: 12px; }
+    .stars { display: flex; gap: 6px; }
+    .star {
+      width: 46px;
+      height: 46px;
+      border: 1px solid #c7d8d1;
+      border-radius: 6px;
+      background: #f7faf8;
+      color: #b0b9b5;
+      font-size: 26px;
+      cursor: pointer;
+    }
+    .star.active { color: #e6a700; border-color: #e6a700; background: #fff9df; }
+    .submit {
+      width: 100%;
+      margin-top: 24px;
+      border: 0;
+      border-radius: 6px;
+      padding: 14px 18px;
+      background: #0d5c4e;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .submit:disabled { opacity: 0.55; cursor: wait; }
+    .message { min-height: 22px; margin: 14px 0 0; color: #b42318; font-size: 14px; line-height: 1.4; }
+    .state { padding: 38px 12px; text-align: center; }
+    .state-icon { width: 58px; height: 58px; margin: 0 auto 18px; border-radius: 50%; display: grid; place-items: center; background: #e5f3ed; color: #0d5c4e; font-size: 26px; font-weight: 800; }
+    .state p { color: #61736d; line-height: 1.55; }
+    .hidden { display: none; }
+    footer { padding: 22px 0; text-align: center; color: #71817c; font-size: 12px; }
+    @media (max-width: 540px) {
+      main { margin: 22px auto; }
+      .panel { padding: 22px 18px; }
+      .row { grid-template-columns: 1fr; gap: 0; }
+      h1 { font-size: 23px; }
+      .stars { justify-content: space-between; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar"></div>
+  <main>
+    <header class="brand">
+      <img src="../logo.png" alt="Logo FenuaPet">
+      <div>
+        <div class="brand-name">FenuaPet</div>
+        <div class="brand-subtitle">La confiance au service de nos animaux</div>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div id="loading" class="state">
+        <div class="state-icon">…</div>
+        <h1>Chargement de l’invitation</h1>
+        <p>Un instant, nous vérifions ton lien.</p>
+      </div>
+
+      <div id="invalid" class="state hidden">
+        <div class="state-icon">!</div>
+        <h1>Invitation indisponible</h1>
+        <p>Ce lien est invalide ou a déjà été utilisé. Demande un nouveau lien au petsitter.</p>
+      </div>
+
+      <div id="success" class="state hidden">
+        <div class="state-icon">✓</div>
+        <h1>Merci pour ton avis</h1>
+        <p>Ton témoignage a bien été enregistré. Il aidera la communauté FenuaPet à choisir en confiance.</p>
+      </div>
+
+      <form id="review-form" class="hidden" novalidate>
+        <h1>Laisser un avis</h1>
+        <p id="intro" class="intro">Partage simplement ton expérience avec ce petsitter.</p>
+
+        <div class="row">
+          <div>
+            <label class="required" for="first-name">Prénom</label>
+            <input id="first-name" maxlength="80" autocomplete="given-name" required>
+          </div>
+          <div>
+            <label class="required" for="last-name">Nom</label>
+            <input id="last-name" maxlength="80" autocomplete="family-name" required>
+          </div>
+        </div>
+
+        <label class="required" for="animal-species">Animal concerné</label>
+        <input id="animal-species" maxlength="80" placeholder="Par exemple : chien, chat ou lapin" required>
+
+        <div class="row">
+          <div>
+            <label for="animal-age">Âge de l’animal</label>
+            <input id="animal-age" type="number" min="0" max="100" inputmode="numeric" placeholder="Optionnel">
+          </div>
+          <div>
+            <label for="animal-weight">Poids en kg</label>
+            <input id="animal-weight" type="number" min="0" max="500" step="0.1" inputmode="decimal" placeholder="Optionnel">
+          </div>
+        </div>
+
+        <label class="required">Note</label>
+        <div id="stars" class="stars" role="radiogroup" aria-label="Note sur 5">
+          <button class="star" type="button" data-value="1" aria-label="1 étoile">★</button>
+          <button class="star" type="button" data-value="2" aria-label="2 étoiles">★</button>
+          <button class="star" type="button" data-value="3" aria-label="3 étoiles">★</button>
+          <button class="star" type="button" data-value="4" aria-label="4 étoiles">★</button>
+          <button class="star" type="button" data-value="5" aria-label="5 étoiles">★</button>
+        </div>
+
+        <label class="required" for="comment">Commentaire</label>
+        <textarea id="comment" minlength="20" maxlength="1000" placeholder="Explique ce qui s’est bien passé et ce qui pourrait être amélioré." required></textarea>
+        <div class="hint">20 caractères minimum.</div>
+
+        <p id="message" class="message" role="alert" aria-live="polite"></p>
+        <button id="submit" class="submit" type="submit">Envoyer mon avis</button>
+      </form>
+    </section>
+    <footer>FenuaPet · Polynésie française</footer>
+  </main>
+
+  <script>
+    const SUPABASE_URL = 'https://lmblgotwdbpkobstftxn.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_wUbFb07wKTpQXfRyxxSEOA_G4Cxy5HV';
+    const token = new URLSearchParams(window.location.search).get('token') || '';
+    let rating = 0;
+
+    const states = ['loading', 'invalid', 'success', 'review-form'];
+    function show(id) {
+      states.forEach((state) => document.getElementById(state).classList.toggle('hidden', state !== id));
+    }
+
+    async function invoke(name, body) {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/${name}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY },
+        body: JSON.stringify(body),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'Une erreur est survenue.');
+      return data;
+    }
+
+    document.querySelectorAll('.star').forEach((button) => {
+      button.addEventListener('click', () => {
+        rating = Number(button.dataset.value);
+        document.querySelectorAll('.star').forEach((star) => {
+          const active = Number(star.dataset.value) <= rating;
+          star.classList.toggle('active', active);
+          star.setAttribute('aria-checked', String(Number(star.dataset.value) === rating));
+        });
+      });
+    });
+
+    document.getElementById('review-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const message = document.getElementById('message');
+      const submit = document.getElementById('submit');
+      const payload = {
+        token,
+        firstName: document.getElementById('first-name').value.trim(),
+        lastName: document.getElementById('last-name').value.trim(),
+        animalSpecies: document.getElementById('animal-species').value.trim(),
+        animalAge: document.getElementById('animal-age').value || null,
+        animalWeight: document.getElementById('animal-weight').value || null,
+        comment: document.getElementById('comment').value.trim(),
+        rating,
+      };
+
+      if (!payload.firstName || !payload.lastName || !payload.animalSpecies || payload.comment.length < 20 || rating === 0) {
+        message.textContent = 'Remplis tous les champs obligatoires, choisis une note et écris au moins 20 caractères.';
+        return;
+      }
+
+      message.textContent = '';
+      submit.disabled = true;
+      submit.textContent = 'Envoi en cours…';
+      try {
+        await invoke('submit-external-review', payload);
+        show('success');
+      } catch (error) {
+        message.textContent = error.message === 'Invitation already used'
+          ? 'Ce lien a déjà été utilisé.'
+          : 'L’avis n’a pas pu être envoyé. Vérifie ta connexion et réessaie.';
+        submit.disabled = false;
+        submit.textContent = 'Envoyer mon avis';
+      }
+    });
+
+    if (token.length < 20) {
+      show('invalid');
+    } else {
+      invoke('get-testimonial-invitation', { token })
+        .then(({ invitation }) => {
+          if (!invitation || invitation.used) {
+            show('invalid');
+            return;
+          }
+          if (invitation.sitter?.first_name) {
+            document.getElementById('intro').textContent = `Partage simplement ton expérience avec ${invitation.sitter.first_name}.`;
+          }
+          show('review-form');
+        })
+        .catch(() => show('invalid'));
+    }
+  </script>
+</body>
+</html>

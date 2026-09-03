@@ -148,10 +148,16 @@ async function doLogin() {
     const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
     document.getElementById('pw-input').value = '';
     if (error || !data.session) throw error || new Error('Connexion impossible');
-    await prepareMfa();
   } catch(e) {
     setLoginError('Adresse email ou mot de passe incorrect.');
     document.getElementById('pw-input').value = '';
+    return;
+  }
+
+  try {
+    await prepareMfa();
+  } catch (error) {
+    setLoginError('Connexion réussie, mais la double authentification n’a pas pu être préparée. Réessaie dans un instant.');
   }
 }
 document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
@@ -194,8 +200,11 @@ async function prepareMfa() {
   const { data: enrollment, error: enrollError } = await supabaseClient.auth.mfa.enroll({
     factorType: 'totp',
     friendlyName: 'FenuaPet Administration',
+    issuer: 'FenuaPet',
   });
-  if (enrollError || !enrollment?.id) throw enrollError || new Error('Configuration MFA impossible');
+  if (enrollError || !enrollment?.id || !enrollment?.totp?.qr_code || !enrollment?.totp?.secret) {
+    throw enrollError || new Error('Configuration MFA impossible');
+  }
 
   pendingMfaFactorId = enrollment.id;
   document.getElementById('mfa-title').textContent = 'Configurer la double authentification';

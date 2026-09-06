@@ -566,7 +566,7 @@ function renderVerifications() {
   if (!data.length) { tbody.innerHTML = '<tr><td colspan="4" class="empty">Aucune vérification trouvée</td></tr>'; return; }
   tbody.innerHTML = data.map(v => `
     <tr>
-      <td><div class="user-cell"><div class="avatar">${initials(v.full_name)}</div><div><div class="user-name">${v.full_name}</div><div class="user-email">${v.email}</div></div></div></td>
+      <td><div class="user-cell"><div class="avatar">${escapeHtml(initials(v.full_name))}</div><div><div class="user-name">${escapeHtml(v.full_name)}</div><div class="user-email">${escapeHtml(v.email)}</div></div></div></td>
       <td>${chipVerif(v.status)}</td>
       <td><span class="date">${fmtDate(v.created_at)}</span></td>
       <td><div class="actions">
@@ -670,8 +670,8 @@ function renderReports() {
       : '';
     return `
     <tr>
-      <td><div class="user-cell"><div class="avatar">${initials(reporter.full_name || '')}</div><div><div class="user-name">${escapeHtml(reporter.full_name || 'Utilisateur')}</div><div class="user-email">${escapeHtml(reporter.email || 'Email inconnu')}</div></div></div></td>
-      <td><div class="user-cell"><div class="avatar" style="border-color:var(--danger);color:var(--danger);background:var(--danger-dim)">${initials(reported.full_name || '')}</div><div><div class="user-name">${escapeHtml(reported.full_name || 'Utilisateur')}</div><div class="user-email">${escapeHtml(reported.email || 'Email inconnu')}</div></div></div></td>
+      <td><div class="user-cell"><div class="avatar">${escapeHtml(initials(reporter.full_name || ''))}</div><div><div class="user-name">${escapeHtml(reporter.full_name || 'Utilisateur')}</div><div class="user-email">${escapeHtml(reporter.email || 'Email inconnu')}</div></div></div></td>
+      <td><div class="user-cell"><div class="avatar" style="border-color:var(--danger);color:var(--danger);background:var(--danger-dim)">${escapeHtml(initials(reported.full_name || ''))}</div><div><div class="user-name">${escapeHtml(reported.full_name || 'Utilisateur')}</div><div class="user-email">${escapeHtml(reported.email || 'Email inconnu')}</div></div></div></td>
       <td><div class="report-reason">${escapeHtml(r.reason || 'Raison inconnue')}${adminMeta}</div></td>
       <td>${chipReport(status)}</td>
       <td>${retentionBadge(r)}</td>
@@ -817,7 +817,7 @@ function renderBetaFeedback() {
       : '';
     return `
       <tr>
-        <td><div class="user-cell"><div class="avatar">${initials(user.full_name || '')}</div><div><div class="user-name">${escapeHtml(user.full_name || 'Utilisateur')}</div><div class="user-email">${escapeHtml(user.email || 'Email inconnu')}</div></div></div></td>
+        <td><div class="user-cell"><div class="avatar">${escapeHtml(initials(user.full_name || ''))}</div><div><div class="user-name">${escapeHtml(user.full_name || 'Utilisateur')}</div><div class="user-email">${escapeHtml(user.email || 'Email inconnu')}</div></div></div></td>
         <td>${escapeHtml(betaCategoryLabel(item.category))}</td>
         <td><div class="feedback-snippet">${escapeHtml(item.message || '')}</div>${noteMeta}</td>
         <td>${chipBeta(betaStatus(item))}</td>

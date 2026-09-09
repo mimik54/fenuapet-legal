@@ -8,7 +8,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://lmblgotwdbpkobstftxn.supabase.co; connect-src https://lmblgotwdbpkobstftxn.supabase.co wss://lmblgotwdbpkobstftxn.supabase.co; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
 <title>Fenua Pet</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./admin.css">
+<link rel="stylesheet" href="./admin.css?v=879b313be18c">
 </head>
 <body>
 
@@ -155,6 +155,9 @@
       <span class="icon">🧪</span> Retours bêta
       <span class="badge green" id="badge-beta">0</span>
     </div>
+    <div class="nav-item" data-command="show-page" data-page="support">
+      <span class="icon">✉</span> Support
+    </div>
     <div class="sidebar-footer">
       <div class="admin-tag">Connecté en tant que<br><span id="admin-login">Admin</span></div>
       <button class="logout-btn" data-command="logout">← Déconnexion</button>
@@ -274,6 +277,18 @@
       </div>
     </div>
 
+    <div class="page" id="page-support">
+      <div class="page-header"><div><div class="page-title">Aide & support</div><div class="page-sub">Demandes des utilisateurs, distinctes des retours bêta</div></div><button class="refresh-btn" data-command="load-support">↻ Actualiser</button></div>
+      <div class="table-wrap">
+        <div class="table-top"><div class="table-title">Demandes reçues</div><div class="filter-row">
+          <select id="support-category" class="search-input" aria-label="Catégorie support"><option value="">Toutes les catégories</option value="account">Mon compte</option><option value="booking">Réservations</option><option value="payment">Paiements</option><option value="mission">Missions</option><option value="other">Autres questions</option></select>
+          <select id="support-status" class="search-input" aria-label="Statut support"><option value="">Tous les statuts</option><option value="unread">À lire</option><option value="read">En cours</option><option value="resolved">Traitées</option></select>
+        </div></div>
+        <table><thead><tr><th>Utilisateur</th><th>Sujet</th><th>Message</th><th>Statut</th><th>Date</th><th>Action</th></tr></thead><tbody id="support-tbody"><tr><td colspan="6" class="loading">Chargement...</td></tr></tbody></table>
+        <div style="padding:16px"><button class="refresh-btn" id="support-more" data-command="more-support" hidden>Voir les demandes précédentes</button></div>
+      </div>
+    </div>
+
     <!-- BETA FEEDBACK -->
     <div class="page" id="page-beta">
       <div class="page-header">
@@ -348,6 +363,23 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-support">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Demande au support</div><button class="modal-close" data-command="close-modal" data-modal="modal-support">✕</button></div>
+    <div class="modal-body">
+      <div id="support-details"></div>
+      <button class="btn-sm btn-view" id="support-capture-button" data-command="support-capture" hidden>Voir la capture privée</button>
+      <img id="support-capture" alt="Capture jointe à la demande" referrerpolicy="no-referrer" hidden style="max-width:100%;max-height:480px;object-fit:contain;margin-top:12px">
+      <label for="support-reply" style="display:block;margin-top:20px">Réponse visible dans l’application</label>
+      <textarea id="support-reply" maxlength="4000" style="width:100%;min-height:150px;margin-top:8px;padding:12px" placeholder="Ta réponse à l’utilisateur..."></textarea>
+      <label for="support-edit-status" style="display:block;margin-top:12px">Statut</label>
+      <select id="support-edit-status" class="search-input"><option value="unread">À lire</option><option value="read">En cours</option><option value="resolved">Traitée</option></select>
+      <p style="margin-top:12px;color:var(--text2)">La réponse est consultable dans Aide & support → Mes demandes. Aucun paiement, remboursement ou changement de réservation n’est déclenché ici.</p>
+      <button class="btn-sm btn-approve" id="support-save" data-command="save-support">Enregistrer la réponse et le statut</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-beta">
   <div class="modal">
     <div class="modal-header">
@@ -368,6 +400,6 @@
 <div class="toast" id="toast"></div>
 
 <script src="./vendor/supabase.js" defer></script>
-<script src="./admin.js" defer></script>
+<script src="./admin.js?v=879b313be18c" defer></script>
 </body>
 </html>

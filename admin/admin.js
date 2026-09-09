@@ -270,12 +270,12 @@ function showPage(name, el) {
   el.classList.add('active');
 }
 function jumpToPage(name) {
-  const nav = [...document.querySelectorAll('.nav-item')].find(item => item.getAttribute('onclick')?.includes(`'${name}'`));
+  const nav = [...document.querySelectorAll('.nav-item')].find(item => item.dataset.page === name);
   if (nav) showPage(name, nav);
 }
 async function refreshAll() {
   document.getElementById('dash-spin')?.classList.add('spinning');
-  await Promise.all([loadVerifications(), loadReports(), loadBetaFeedback()]);
+  await Promise.all([loadVerifications(), loadReports(), loadBetaFeedback(), loadSupport()]);
   updateDashboard();
   document.getElementById('dash-spin')?.classList.remove('spinning');
 }
@@ -286,9 +286,9 @@ function showToast(msg, type = 'success') {
   setTimeout(() => t.classList.remove('show'), 3500);
 }
 function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); if (id === 'modal-support') { currentSupportId = null; const image = document.getElementById('support-capture'); image.removeAttribute('src'); image.hidden = true; } }
 document.querySelectorAll('.modal-overlay').forEach(o => {
-  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+  o.addEventListener('click', e => { if (e.target === o) closeModal(o.id); });
 });
 
 function fmtDate(d) {
@@ -947,6 +947,67 @@ function updateDashboard() {
   `).join('');
 }
 
+let allSupport = [], currentSupportId = null, supportRevision = 0, supportLoading = false, supportSaving = false;
+const supportStatuses = { unread: 'À lire', read: 'En cours', resolved: 'Traitée' };
+async function loadSupport(more = false) {
+  if (more && supportLoading) return;
+  const revision = ++supportRevision;
+  supportLoading = true;
+  try {
+    const data = await adminAction('listSupport', { category: document.getElementById('support-category').value, status: document.getElementById('support-status').value, offset: more ? allSupport.length : 0 });
+    if (revision !== supportRevision) return;
+    allSupport = more ? [...allSupport, ...(data.tickets || [])] : data.tickets || [];
+    renderSupport();
+    document.getElementById('support-more').hidden = !data.has_more;
+  } catch (_) {
+    if (revision === supportRevision) { document.getElementById('support-tbody').innerHTML = '<tr><td colspan="6" class="empty">Impossible de charger les demandes. Réessaie.</td></tr>'; document.getElementById('support-more').hidden = true; }
+  } finally { if (revision === supportRevision) supportLoading = false; }
+}
+function renderSupport() {
+  document.getElementById('support-tbody').innerHTML = allSupport.length ? allSupport.map(item => `<tr>
+    <td>${escapeHtml(item.user?.full_name || 'Compte supprimé')}<div class="user-email">${escapeHtml(item.user?.email || '')}</div></td>
+    <td>${escapeHtml(item.subject)}</td>
+    <td><div class="feedback-snippet">${escapeHtml(item.message)}</div>${item.attachment_path ? '<span>Capture jointe</span>' : ''}</td>
+    <td>${escapeHtml(supportStatuses[item.status] || 'À lire')}</td><td>${fmtDate(item.created_at)}</td>
+    <td><button class="btn-sm btn-view" data-command="open-support" data-id="${escapeHtml(item.id)}">Ouvrir</button></td></tr>`).join('') : '<tr><td colspan="6" class="empty">Aucune demande pour ces filtres</td></tr>';
+}
+function openSupport(id) {
+  const item = allSupport.find(ticket => ticket.id === id);
+  if (!item) return;
+  currentSupportId = id;
+  document.getElementById('support-details').innerHTML = `<h3>${escapeHtml(item.subject)}</h3><p>${escapeHtml(item.user?.full_name || '')} · ${escapeHtml(item.user?.email || '')}</p><p class="mono">${escapeHtml(item.id)}</p><p>${fmtDate(item.created_at)} · ${escapeHtml(item.platform || '')} ${escapeHtml(item.app_version || '')}</p>${item.booking_id ? `<p>Réservation : ${escapeHtml(item.booking_id)}</p>` : ''}<p style="white-space:pre-wrap;overflow-wrap:anywhere;margin-top:16px">${escapeHtml(item.message)}</p>`;
+  const image = document.getElementById('support-capture'); image.removeAttribute('src'); image.hidden = true;
+  document.getElementById('support-capture-button').hidden = !item.attachment_path;
+  document.getElementById('support-reply').value = item.admin_reply || '';
+  document.getElementById('support-edit-status').value = item.status || 'unread';
+  openModal('modal-support');
+}
+async function showSupportCapture() {
+  const id = currentSupportId;
+  if (!id) return;
+  try {
+    const data = await adminAction('getSupportCapture', { ticketId: id });
+    if (currentSupportId !== id) return;
+    const url = new URL(data.url);
+    if (url.origin !== SUPABASE_URL || !url.pathname.startsWith('/storage/v1/object/sign/support-attachments/')) throw new Error('URL invalide');
+    const image = document.getElementById('support-capture'); image.src = url.href; image.hidden = false;
+  } catch (_) { showToast('Capture indisponible. Réessaie pour renouveler son accès.', 'error'); }
+}
+async function saveSupport() {
+  if (supportSaving) return;
+  const item = allSupport.find(ticket => ticket.id === currentSupportId);
+  if (!item) return;
+  supportSaving = true; document.getElementById('support-save').disabled = true;
+  try {
+    const data = await adminAction('updateSupport', { ticketId: item.id, reply: document.getElementById('support-reply').value, status: document.getElementById('support-edit-status').value, expectedUpdatedAt: item.admin_updated_at });
+    if (currentSupportId === item.id) closeModal('modal-support');
+    showToast('Réponse et statut enregistrés dans l’application.');
+    await loadSupport();
+  } catch (_) { showToast('Enregistrement non confirmé. Actualise la demande avant de réessayer.', 'error'); }
+  finally { supportSaving = false; document.getElementById('support-save').disabled = false; }
+}
+document.addEventListener('change', event => { if (['support-category', 'support-status'].includes(event.target.id)) loadSupport(); });
+
 document.addEventListener('input', event => {
   if (event.target.id === 'verif-search') filterVerifications();
   if (event.target.id === 'report-search') filterReports();
@@ -973,6 +1034,11 @@ document.addEventListener('click', event => {
   else if (command === 'load-verifications') loadVerifications();
   else if (command === 'load-reports') loadReports();
   else if (command === 'load-beta') loadBetaFeedback();
+  else if (command === 'load-support') loadSupport();
+  else if (command === 'more-support') loadSupport(true);
+  else if (command === 'open-support') openSupport(id);
+  else if (command === 'support-capture') showSupportCapture();
+  else if (command === 'save-support') saveSupport();
   else if (command === 'filter-verifications') setVerifFilter(target.dataset.filter, target);
   else if (command === 'filter-reports') setReportFilter(target.dataset.filter, target);
   else if (command === 'filter-beta') setBetaFilter(target.dataset.filter, target);

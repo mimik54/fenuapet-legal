@@ -251,3 +251,4 @@
   .t-big-emoji { font-size: 64px; margin-bottom: 16px; }
   .t-success-title { font-size: 24px; font-weight: 700; color: #1a3d2e; margin-bottom: 10px; }
   .t-success-text { font-size: 15px; color: #6b9e8a; line-height: 1.6; }
+  #page-support [hidden], #modal-support [hidden] { display: none !important; }

@@ -252,6 +252,8 @@ async function finishSecureLogin() {
 }
 
 async function doLogout() {
+  careRevision++; careReviews = [];
+  document.getElementById('care-tbody').textContent = '';
   await supabaseClient.auth.signOut();
   pendingMfaFactorId = null;
   document.getElementById('login-screen').style.display = 'flex';
@@ -268,6 +270,7 @@ function showPage(name, el) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(`page-${name}`).classList.add('active');
   el.classList.add('active');
+  if (name === 'care') loadCareReviews();
 }
 function jumpToPage(name) {
   const nav = [...document.querySelectorAll('.nav-item')].find(item => item.dataset.page === name);
@@ -275,11 +278,50 @@ function jumpToPage(name) {
 }
 async function refreshAll() {
   document.getElementById('dash-spin')?.classList.add('spinning');
-  await Promise.all([loadVerifications(), loadReports(), loadBetaFeedback(), loadSupport()]);
+  await Promise.all([loadVerifications(), loadReports(), loadBetaFeedback(), loadSupport(), loadCareReviews()]);
   updateDashboard();
   document.getElementById('dash-spin')?.classList.remove('spinning');
 }
 
+let careReviews = [], careLoading = false, careSaving = false, careRevision = 0;
+async function loadCareReviews() {
+  if (careLoading) return;
+  careLoading = true;
+  const revision = careRevision;
+  try {
+    const { data, error } = await supabaseClient.rpc('list_care_presence_reviews');
+    if (error) throw error;
+    if (revision !== careRevision) return;
+    careReviews = data || [];
+    document.getElementById('badge-care').textContent = careReviews.filter(item => item.presence_review === 'pending').length;
+    const reasons = { outside_grace_exceeded: 'Sortie détectée pendant au moins 2 minutes', voluntary_stop: 'Arrêt demandé par le petsitter', tracking_incomplete: 'Suivi incomplet ou durée maximale atteinte' };
+    const statuses = { pending: 'À examiner', withheld: 'Blocage maintenu', validated: 'Passage validé' };
+    document.getElementById('care-tbody').innerHTML = careReviews.length ? careReviews.map(item => `<tr>
+      <td>${escapeHtml(item.service_date)} · ${escapeHtml(item.time_slot)}<br><small class="mono">Réservation : ${escapeHtml(item.booking_id)}<br>Passage : ${escapeHtml(item.id)}</small></td>
+      <td>${escapeHtml(item.sitter_name)}<br><small>Propriétaire : ${escapeHtml(item.owner_name)}</small></td>
+      <td>${Math.floor(item.presence_seconds / 60)} min vérifiées / ${Number(item.required_minutes)} prévues<br>${escapeHtml(reasons[item.presence_issue] || 'À vérifier')}<br><small>${Number(item.outside_samples)} mesures hors zone · ${Number(item.uncertain_samples)} imprécises</small></td>
+      <td><strong>${escapeHtml(statuses[item.presence_review] || '')}</strong><textarea id="care-note-${escapeHtml(item.id)}" aria-label="Motif de la décision" maxlength="4000" placeholder="Vérifications effectuées avec les deux personnes et motif de la décision" style="width:100%;min-height:90px;margin:8px 0">${escapeHtml(item.review_note || '')}</textarea><button class="btn-sm btn-view" data-command="review-care" data-id="${escapeHtml(item.id)}" data-decision="validated">Valider le passage</button> <button class="btn-sm" data-command="review-care" data-id="${escapeHtml(item.id)}" data-decision="withheld">Maintenir le blocage</button></td>
+    </tr>`).join('') : '<tr><td colspan="4" class="empty">Aucun passage à vérifier</td></tr>';
+  } catch (_) {
+    if (revision !== careRevision) return;
+    document.getElementById('badge-care').textContent = '!';
+    document.getElementById('care-tbody').innerHTML = '<tr><td colspan="4" class="empty">Chargement impossible. Actualise avec ta session administrateur et la double authentification.</td></tr>';
+  } finally { careLoading = false; }
+}
+async function reviewCare(id, decision) {
+  if (careSaving || !careReviews.some(item => item.id === id) || !['validated','withheld'].includes(decision)) return;
+  const note = document.getElementById(`care-note-${id}`).value.trim();
+  if (note.length < 20) { showToast('Détaille les vérifications et la décision (20 caractères minimum).', 'error'); return; }
+  if (!confirm(decision === 'validated' ? 'Confirmer que le passage a bien été réalisé après vérification avec les personnes concernées ? Aucune opération Stripe ne sera lancée maintenant.' : 'Maintenir le blocage de paiement en attendant le traitement financier ? Aucun remboursement automatique ne sera lancé.')) return;
+  careSaving = true;
+  try {
+    const { error } = await supabaseClient.rpc('review_care_presence', { p_session_id: id, p_decision: decision, p_note: note });
+    if (error) throw error;
+    showToast('Décision enregistrée. Aucun paiement ni remboursement effectué.');
+    await loadCareReviews();
+  } catch (_) { showToast('Décision non confirmée. Actualise et vérifie ta session.', 'error'); }
+  finally { careSaving = false; }
+}
 function showToast(msg, type = 'success') {
   const t = document.getElementById('toast');
   t.textContent = msg; t.className = `toast ${type} show`;
@@ -1034,6 +1076,8 @@ document.addEventListener('click', event => {
   else if (command === 'load-verifications') loadVerifications();
   else if (command === 'load-reports') loadReports();
   else if (command === 'load-beta') loadBetaFeedback();
+  else if (command === 'load-care') loadCareReviews();
+  else if (command === 'review-care') reviewCare(id, target.dataset.decision);
   else if (command === 'load-support') loadSupport();
   else if (command === 'more-support') loadSupport(true);
   else if (command === 'open-support') openSupport(id);

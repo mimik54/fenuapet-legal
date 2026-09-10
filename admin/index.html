@@ -8,7 +8,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://lmblgotwdbpkobstftxn.supabase.co; connect-src https://lmblgotwdbpkobstftxn.supabase.co wss://lmblgotwdbpkobstftxn.supabase.co; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
 <title>Fenua Pet</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./admin.css?v=879b313be18c">
+<link rel="stylesheet" href="./admin.css?v=1f70b0a10bab">
 </head>
 <body>
 
@@ -158,6 +158,9 @@
     <div class="nav-item" data-command="show-page" data-page="support">
       <span class="icon">✉</span> Support
     </div>
+    <div class="nav-item" data-command="show-page" data-page="care">
+      Passages à vérifier <span class="badge" id="badge-care">0</span>
+    </div>
     <div class="sidebar-footer">
       <div class="admin-tag">Connecté en tant que<br><span id="admin-login">Admin</span></div>
       <button class="logout-btn" data-command="logout">← Déconnexion</button>
@@ -289,6 +292,11 @@
       </div>
     </div>
 
+    <div class="page" id="page-care">
+      <div class="page-header"><div><div class="page-title">Passages à vérifier</div><div class="page-sub">Incidents de présence, sans sanction automatique</div></div><button class="refresh-btn" data-command="load-care">Actualiser</button></div>
+      <p style="margin-bottom:20px">Vérifie le carnet et échange avec les deux personnes avant de décider. Valider reconnaît que le passage a été réalisé malgré un suivi incomplet. Maintenir le blocage ne rembourse personne : le montant et l’opération Stripe doivent être traités séparément après examen.</p>
+      <div class="table-wrap"><table><thead><tr><th>Passage</th><th>Participants</th><th>Suivi</th><th>Vérification</th></tr></thead><tbody id="care-tbody"></tbody></table></div>
+    </div>
     <!-- BETA FEEDBACK -->
     <div class="page" id="page-beta">
       <div class="page-header">
@@ -400,6 +408,6 @@
 <div class="toast" id="toast"></div>
 
 <script src="./vendor/supabase.js" defer></script>
-<script src="./admin.js?v=879b313be18c" defer></script>
+<script src="./admin.js?v=1f70b0a10bab" defer></script>
 </body>
 </html>

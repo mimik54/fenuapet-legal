@@ -294,12 +294,12 @@ async function loadCareReviews() {
     if (revision !== careRevision) return;
     careReviews = data || [];
     document.getElementById('badge-care').textContent = careReviews.filter(item => item.presence_review === 'pending').length;
-    const reasons = { outside_grace_exceeded: 'Sortie détectée pendant au moins 2 minutes', voluntary_stop: 'Arrêt demandé par le petsitter', tracking_incomplete: 'Suivi incomplet ou durée maximale atteinte' };
+    const reasons = { outside_grace_exceeded: 'Sortie détectée pendant au moins 2 minutes', voluntary_stop: 'Arrêt demandé par le petsitter', tracking_incomplete: 'Suivi incomplet ou durée maximale atteinte', stop_not_recorded: 'Arrêt non enregistré dans le délai de sécurité, horaires à vérifier' };
     const statuses = { pending: 'À examiner', withheld: 'Blocage maintenu', validated: 'Passage validé' };
     document.getElementById('care-tbody').innerHTML = careReviews.length ? careReviews.map(item => `<tr>
       <td>${escapeHtml(item.service_date)} · ${escapeHtml(item.time_slot)}<br><small class="mono">Réservation : ${escapeHtml(item.booking_id)}<br>Passage : ${escapeHtml(item.id)}</small></td>
       <td>${escapeHtml(item.sitter_name)}<br><small>Propriétaire : ${escapeHtml(item.owner_name)}</small></td>
-      <td>${Math.floor(item.presence_seconds / 60)} min vérifiées / ${Number(item.required_minutes)} prévues<br>${escapeHtml(reasons[item.presence_issue] || 'À vérifier')}<br><small>${Number(item.outside_samples)} mesures hors zone · ${Number(item.uncertain_samples)} imprécises</small></td>
+      <td>${item.presence_version === 2 ? 'Arrivée vérifiée uniquement · pas de suivi continu' : `${Math.floor(item.presence_seconds / 60)} min vérifiées`} / ${Number(item.required_minutes)} min prévues<br>${escapeHtml(reasons[item.presence_issue] || 'À vérifier')}<br><small>${item.presence_version === 2 ? 'La durée réelle est à confirmer avec les participants et le carnet.' : `${Number(item.outside_samples)} mesures hors zone · ${Number(item.uncertain_samples)} imprécises`}</small></td>
       <td><strong>${escapeHtml(statuses[item.presence_review] || '')}</strong><textarea id="care-note-${escapeHtml(item.id)}" aria-label="Motif de la décision" maxlength="4000" placeholder="Vérifications effectuées avec les deux personnes et motif de la décision" style="width:100%;min-height:90px;margin:8px 0">${escapeHtml(item.review_note || '')}</textarea><button class="btn-sm btn-view" data-command="review-care" data-id="${escapeHtml(item.id)}" data-decision="validated">Valider le passage</button> <button class="btn-sm" data-command="review-care" data-id="${escapeHtml(item.id)}" data-decision="withheld">Maintenir le blocage</button></td>
     </tr>`).join('') : '<tr><td colspan="4" class="empty">Aucun passage à vérifier</td></tr>';
   } catch (_) {
